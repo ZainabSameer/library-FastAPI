@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean , ForeignKey
 from sqlalchemy.orm import relationship  
 from .base import BaseModel  
 
@@ -13,4 +13,6 @@ class BookModel(BaseModel):
     in_stock = Column(Boolean)
     rating = Column(Integer)
     publication_year = Column(Integer)
+    user_id = Column(Integer, ForeignKey('users.id'))
 
+    user = relationship("UserModel", back_populates="books")

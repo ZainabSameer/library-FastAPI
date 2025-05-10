@@ -1,5 +1,5 @@
 from models.book import BookModel 
-
+from models.reviews import ReviewModel
 
 books_list = [
     BookModel(title="Brave New World", author="Aldous Huxley", rating=4.3, in_stock=True),
@@ -12,3 +12,17 @@ books_list = [
     BookModel(title="The Road", author="Cormac McCarthy", rating=4.3, in_stock=True),
     BookModel(title="The Grapes of Wrath", author="John Steinbeck", rating=4.2, in_stock=True)
 ]
+
+
+reviews_list = [
+    ReviewModel(content="nice book", book_id=1),
+    ReviewModel(content="nice book", book_id=2),
+    ReviewModel(content="nice book", book_id=3),
+    ReviewModel(content="nice book", book_id=4),
+    ReviewModel(content="nice book", book_id=5),
+    ReviewModel(content="nice book", book_id=6),
+    ReviewModel(content="nice book", book_id=7),
+    ReviewModel(content="Gripping and heart-wrenching", book_id=8),
+    ReviewModel(content="A powerful portrayal of struggle.", book_id=9)
+]
+

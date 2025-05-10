@@ -4,7 +4,7 @@ from .base import BaseModel
 
 class ReviewModel(BaseModel):
 
-    __tablename__ = "review"
+    __tablename__ = "reviews"
     id = Column(Integer, primary_key=True, index=True)
     #content = Column(String, nullable=False)
     review_id = Column(Integer, ForeignKey('books.id'), nullable=False)

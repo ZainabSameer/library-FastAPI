@@ -15,12 +15,15 @@ def get_comments_for_tea(book_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Book not found")
     return book.reviews
 
+
+
 @router.get("/reviews/{review_id}", response_model=ReviewsSchema)
 def get_comment(review_id: int, db: Session = Depends(get_db)):
     review = db.query(ReviewModel).filter(ReviewModel.id == review_id).first()
     if not review:
         raise HTTPException(status_code=404, detail="not found")
     return review
+
 
 @router.post("/books/{book_id}/reviews", response_model=ReviewsSchema)
 def create_comment(book_id: int, review: ReviewsSchema, db: Session = Depends(get_db)):
@@ -33,6 +36,8 @@ def create_comment(book_id: int, review: ReviewsSchema, db: Session = Depends(ge
     db.commit()
     db.refresh(new_review)
     return new_review
+
+
 
 @router.put("/reviews/{review_id}", response_model=ReviewsSchema)
 def update_review(review_id: int, review: ReviewsSchema, db: Session = Depends(get_db)):
@@ -47,6 +52,8 @@ def update_review(review_id: int, review: ReviewsSchema, db: Session = Depends(g
     db.commit()
     db.refresh(db_review)
     return db_review
+
+
 
 @router.delete("/reviews/{review_id}")
 def delete_review(review_id: int, db: Session = Depends(get_db)):
