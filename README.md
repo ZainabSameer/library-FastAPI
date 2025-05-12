@@ -1,5 +1,5 @@
 # FastAPI Application
-
+# Zainab Library
 # Project Idea
  - The Online Library System is designed to provide users with a convenient platform to browse and manage a collection of books. Users can view details about each book, including its title, author, rating, and availability. Additionally, users can leave reviews for books, enhancing the community aspect of the library.
 # Model Description and Entity Relationship Diagram (ERD)
