@@ -6,6 +6,6 @@ class ReviewModel(BaseModel):
 
     __tablename__ = "reviews"
     id = Column(Integer, primary_key=True, index=True)
-    #content = Column(String, nullable=False)
-    review_id = Column(Integer, ForeignKey('books.id'), nullable=False)
-    review = relationship("ReviewModel", back_populates="reviews")  
+    content = Column(String, nullable=False)
+    book_id = Column(Integer, ForeignKey('books.id'), nullable=False)
+    book = relationship("BookModel", back_populates="reviews")  

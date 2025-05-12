@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean , ForeignKey
 from sqlalchemy.orm import relationship  
 from .base import BaseModel  
-
+from .user import UserModel
+from .reviews import ReviewModel
 
 class BookModel(BaseModel):
 
@@ -16,3 +17,4 @@ class BookModel(BaseModel):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     user = relationship("UserModel", back_populates="books")
+    reviews = relationship("ReviewModel", back_populates="book", cascade="all, delete")

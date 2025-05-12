@@ -93,7 +93,7 @@ def create_book(book: BookCreateSchema, db: Session = Depends(get_db), current_u
 
 @router.put("/books/{book_id}", response_model=BookSchema)
 def update_book(book_id: int, book: BookSchema, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
-    db_tea = db.query(BookModel).filter(BookModel.id == book_id).first()
+    db_book = db.query(BookModel).filter(BookModel.id == book_id).first()
     if not db_book:
         raise HTTPException(status_code=404, detail="book not found")
 
