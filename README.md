@@ -1,7 +1,18 @@
 # FastAPI Application
-
+# Zainab Library
 # Project Idea
  - The Online Library System is designed to provide users with a convenient platform to browse and manage a collection of books. Users can view details about each book, including its title, author, rating, and availability. Additionally, users can leave reviews for books, enhancing the community aspect of the library.
+
+# Getting Started 
+  * After you clone the repository 
+  * pip install -r requirements.txt
+  * To run the application # uvicorn main:app --reload
+
+# Technologies Used
+  * FastAPI: A modern web framework for building APIs with Python.
+  * SQLAlchemy: The SQL toolkit and Object-Relational Mappingsystem for Python.
+  * PyTest: A testing framework for writing simple and scalable test cases.
+
 # Model Description and Entity Relationship Diagram (ERD)
    ###### Book
    Attributes:
@@ -37,3 +48,4 @@
 | POST       | `/api/books/{id}/reviews`         | Add a new review for a specific book              | JSON object containing `user`and `content` | JSON object of the created review  |
 | DELETE     | `/api/reviews/{id}`               | Delete a specific review by ID (Admin and owner only)      | N/A                                                   | Confirmation message              |
 # External Resources/APIs you expect to use or reference
+  FastAPI Documentation
