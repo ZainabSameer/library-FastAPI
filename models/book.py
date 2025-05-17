@@ -4,6 +4,8 @@ from .base import BaseModel
 from .user import UserModel
 from .reviews import ReviewModel
 
+
+
 class BookModel(BaseModel):
 
     __tablename__ = "books"
@@ -18,3 +20,5 @@ class BookModel(BaseModel):
 
     user = relationship("UserModel", back_populates="books")
     reviews = relationship("ReviewModel", back_populates="book", cascade="all, delete")
+
+

@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel , ConfigDict
+from typing import Optional
 
-class ReviewSchema(BaseModel):
-  id: int
+class ReviewsSchema(BaseModel):
+  id: Optional[int] = None
   content: str
 
-  class Config:
-    orm_mode = True
+  model_config = ConfigDict(from_attributes=True)

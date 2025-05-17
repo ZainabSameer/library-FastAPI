@@ -1,16 +1,19 @@
-from pydantic import BaseModel
-from typing import Optional
-
+from pydantic import BaseModel , ConfigDict
+from typing import Optional , List
+#from reviews import ReviewsSchema
+from .reviews import ReviewsSchema
+from .user import UserResponseSchema
 class BookSchema(BaseModel):
-    id: Optional[int] = None  
+    id: Optional[int] = None 
     title: str  
     author: str  
     in_stock: bool  
     rating: int  
     publication_year: Optional[int] = None  
+    user: UserResponseSchema
+    reviews: List[ReviewsSchema] = []
 
-    class Config:
-        from_attributes = True  
+    model_config = ConfigDict(from_attributes=True)
 
 class BookCreate(BaseModel):
     title: str

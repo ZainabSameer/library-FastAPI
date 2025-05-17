@@ -5,9 +5,79 @@ from models.user import UserModel
 from models.book import BookModel
 from tests.lib import login
 from main import app
+
+def test_get_books(test_app: TestClient, override_get_db):
+    response = test_app.get("/api/books")
+    assert response.status_code == 200
+    books = response.json()
+    assert isinstance(books, list)
+    assert len(books) >= 2
+    for book in books:
+        assert 'id' in book
+        assert 'title' in book
+        assert 'author' in book
+        assert 'in_stock' in book
+        assert 'rating' in book
+        assert 'publication_year' in book
+        assert 'user' in book
+        assert 'email' in book['user']
+        assert 'username' in book['user']
+
+def test_create_book(test_app: TestClient, test_db: Session):
+    # Create a new mock user in the test database
+    user = UserModel(username='testUser', email='zozo@kpmg.com')
+    user.set_password('mys3cretp2ssw0rd')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+
+    # Use the login helper to generate authentication headers for the new mock user
+    headers = login(test_app, 'testUser', 'mys3cretp2ssw0rd')
+
+    # Data for creating a new book
+    book_data = {
+        "title": "Test Book",
+        "author": "Test Author",
+        "in_stock": True,
+        "rating": 5,
+        "publication_year": 2023,
+    }
+
+    # Send a POST request to create a new book
+    response = test_app.post("/api/books", headers=headers, json=book_data)
+
+    # Verify that the response is successful
+    assert response.status_code == 200
+    book_response = response.json()
+    assert book_response["title"] == book_data["title"]
+    assert book_response["author"] == book_data["author"]
+    assert book_response["in_stock"] == book_data["in_stock"]
+    assert book_response["rating"] == book_data["rating"]
+    assert book_response["publication_year"] == book_data["publication_year"]
+    assert "id" in book_response
+    assert "user" in book_response
+    assert book_response['user']["username"] == 'testUser'
+
+    # Verify the book was created in the database
+    book_id = book_response["id"]
+    book = test_db.query(BookModel).filter(BookModel.id == book_id).first()
+    assert book is not None
+    assert book.title == book_data["title"]
+    assert book.author == book_data["author"]
+    assert book.in_stock == book_data["in_stock"]
+    assert book.rating == book_data["rating"]
+    assert book.publication_year == book_data["publication_year"]
+
+
+    
+''''
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 from models.user import UserModel
-
-
+from models.book import BookModel
+from tests.lib import login
+from main import app
 
 def test_get_books(test_app: TestClient, override_get_db):
     response = test_app.get("/api/books")
@@ -25,12 +95,18 @@ def test_get_books(test_app: TestClient, override_get_db):
         assert 'user' in book
         assert 'email' in book['user']
         assert 'username' in book['user']
+
 def test_create_book(test_app: TestClient, test_db: Session):
+    # Create and add user to the database
     user = UserModel(username='testUser', email='zozo@kpmg.com')
     user.set_password('mys3cretp2ssw0rd')
     test_db.add(user)
     test_db.commit()
-    headers = login(test_app, 'testUser123', 'mys3cretp2ssw0rd')
+
+    # Log in with the correct username
+    headers = login(test_app, 'testUser', 'mys3cretp2ssw0rd')
+
+    # Book data to be added
     book_data = {
         "title": "Test Book",
         "author": "Test Author",
@@ -38,8 +114,10 @@ def test_create_book(test_app: TestClient, test_db: Session):
         "rating": 5,
         "publication_year": 2023,
     }
+
+    # Post the book data to create a new book
     response = test_app.post("/api/books", headers=headers, json=book_data)
-    assert response.status_code == 200
+    assert response.status_code == 200  # Check for successful creation
     assert response.json()["title"] == book_data["title"]
     assert response.json()["author"] == book_data["author"]
     assert response.json()["in_stock"] == book_data["in_stock"]
@@ -47,8 +125,9 @@ def test_create_book(test_app: TestClient, test_db: Session):
     assert response.json()["publication_year"] == book_data["publication_year"]
     assert "id" in response.json()  
     assert "user" in response.json()  
-    assert response.json()['user']["username"] == 'testUser123'
+    assert response.json()['user']["username"] == 'testUser'  # Match created username
 
+    # Verify the book is in the database
     book_id = response.json()["id"]
     book = test_db.query(BookModel).filter(BookModel.id == book_id).first()
     assert book is not None
@@ -56,23 +135,29 @@ def test_create_book(test_app: TestClient, test_db: Session):
     assert book.author == book_data["author"]
     assert book.in_stock == book_data["in_stock"]
     assert book.rating == book_data["rating"]
-    assert book.publication_year == book_data["publication_year"]
+    assert book.publication_year == book_data["publication_year"] 
 
 def test_update_book(test_app: TestClient, test_db: Session):
     user = UserModel(username='testUser', email='zozo@kpmg.com')
     user.set_password('mys3cretp2ssw0rd')
     test_db.add(user)
     test_db.commit()
+    test_db.refresh(user)
     
     headers = login(test_app, 'testUser', 'mys3cretp2ssw0rd')
-    book_data = {
+
+    book = BookModel(title ="Another", author = "xxx" , in_stock=True, rating=1 , publication_year = "20222" , user_id=user.id)
+    test_db.add(book)
+    test_db.commit()
+
+    update_data = {
         "title": "Initial Book",
         "author": "Initial Author",
         "in_stock": True,
         "rating": 4,
         "publication_year": 2022,
     }
-    response = test_app.post("/api/books", headers=headers, json=book_data)
+    response = test_app.post("/api/books", headers=headers, json=update_data)
     book_id = response.json()["id"]
 
     update_data = {
@@ -112,3 +197,4 @@ def test_delete_book(test_app: TestClient, test_db: Session):
 
     response = test_app.get(f"/api/books/{book_id}", headers=headers)
     assert response.status_code == 404  
+    '''
