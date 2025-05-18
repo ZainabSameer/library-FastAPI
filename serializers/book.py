@@ -21,3 +21,10 @@ class BookCreate(BaseModel):
     in_stock: bool
     rating: int
     publication_year: Optional[int] = None
+
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    in_stock: Optional[bool] = None
+    rating: Optional[int] = None
+    publication_year: Optional[int] = None

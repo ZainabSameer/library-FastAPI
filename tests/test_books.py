@@ -100,8 +100,44 @@ def test_create_book(test_app: TestClient, test_db: Session):
     assert book.rating == book_data["rating"]
     assert book.publication_year == book_data["publication_year"]
 
+def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
+    user = UserModel(username='anotherTestUser321', email='goodbye@example.com')
+    user.set_password('passw0rd')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
 
+    headers = login(test_app, 'anotherTestUser321', 'passw0rd')
 
+    book = BookModel(
+        title="Another Test Book",
+        author="Original Author",
+        in_stock=True,
+        rating=65,
+        publication_year=2020,
+        user_id=user.id
+    )
+    test_db.add(book)
+    test_db.commit()
+    test_db.refresh(book)
+
+    updated_data = {
+        "title": "Another Updated Book Name",
+        "author": "Updated Author",
+        "in_stock": not book.in_stock,
+        "rating": 55,
+        "publication_year": 2024
+    }
+
+    response = test_app.put(f"/api/books/{book.id}", headers=headers, json=updated_data)
+    assert response.status_code == 200
+    updated_book = response.json()
+    assert updated_book['id'] == book.id
+    assert updated_book['title'] == updated_data['title']
+    assert updated_book['author'] == updated_data['author']
+    assert updated_book['in_stock'] == updated_data['in_stock']
+    assert updated_book['rating'] == updated_data['rating']
+    assert updated_book['publication_year'] == updated_data['publication_year']
 
 
 '''''
