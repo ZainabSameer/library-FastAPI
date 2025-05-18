@@ -22,8 +22,6 @@ class UserToken(BaseModel):
     token: str
     message: str
 
-    #class Config:
-    #    orm_mode = True
     model_config = ConfigDict(
         from_attributes=True  
     )
