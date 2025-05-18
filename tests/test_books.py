@@ -23,18 +23,52 @@ def test_get_books(test_app: TestClient, override_get_db):
         assert 'email' in book['user']
         assert 'username' in book['user']
 
+
+
+def test_get_single_book(test_app: TestClient, test_db: Session, override_get_db):
+    book = test_db.query(BookModel).first()
+    assert book is not None
+    response = test_app.get(f"/api/books/{book.id}")
+    assert response.status_code == 200
+    book = response.json()
+    assert isinstance(book, dict)
+    assert 'id' in book
+    assert 'title' in book
+    assert 'author' in book
+    assert 'in_stock' in book
+    assert 'rating' in book
+    assert 'publication_year' in book
+    assert 'user' in book
+    assert 'email' in book['user']
+    assert 'username' in book['user']
+    assert 'reviews' in book
+    for review in book['reviews']:
+        assert 'content' in review
+        assert 'id' in review
+
+def test_get_book_not_found(test_app: TestClient, test_db: Session, override_get_db):
+    max_book_id = test_db.query(BookModel.id).order_by(BookModel.id.desc()).first()
+    if max_book_id is None:
+        invalid_book_id = 1
+    else:
+        invalid_book_id = max_book_id[0] + 1
+
+    response = test_app.get(f"/api/books/{invalid_book_id}")
+    assert response.status_code == 404
+    response_data = response.json()
+    assert response_data['detail'] == 'Book not found'
+
 def test_create_book(test_app: TestClient, test_db: Session):
-    # Create a new mock user in the test database
+
     user = UserModel(username='testUser', email='zozo@kpmg.com')
     user.set_password('mys3cretp2ssw0rd')
     test_db.add(user)
     test_db.commit()
     test_db.refresh(user)
 
-    # Use the login helper to generate authentication headers for the new mock user
+
     headers = login(test_app, 'testUser', 'mys3cretp2ssw0rd')
 
-    # Data for creating a new book
     book_data = {
         "title": "Test Book",
         "author": "Test Author",
@@ -43,10 +77,8 @@ def test_create_book(test_app: TestClient, test_db: Session):
         "publication_year": 2023,
     }
 
-    # Send a POST request to create a new book
     response = test_app.post("/api/books", headers=headers, json=book_data)
 
-    # Verify that the response is successful
     assert response.status_code == 200
     book_response = response.json()
     assert book_response["title"] == book_data["title"]
@@ -58,7 +90,7 @@ def test_create_book(test_app: TestClient, test_db: Session):
     assert "user" in book_response
     assert book_response['user']["username"] == 'testUser'
 
-    # Verify the book was created in the database
+
     book_id = book_response["id"]
     book = test_db.query(BookModel).filter(BookModel.id == book_id).first()
     assert book is not None
@@ -69,8 +101,49 @@ def test_create_book(test_app: TestClient, test_db: Session):
     assert book.publication_year == book_data["publication_year"]
 
 
+
+
+
+'''''
+def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
+    user = UserModel(username='anotherTestUser', email='hello@example.com')
+    user.set_password('passw0rd123')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+
+    headers = login(test_app, 'anotherTestUser', 'passw0rd123')
+
+    book = BookModel(title="Another Test",author="zanoob", in_stock=True, rating=8 , publication_year= "2023", user_id=user.id)
+    test_db.add(book)
+    test_db.commit()
+
+    updated_data = {
+        "title": "Test Book1",
+        "author": "Test Author1",
+        "in_stock": True,
+        "rating": 1,
+        "publication_year": 2025,
+        "user": user.id 
+
+    }
+
+    response = test_app.put(f"/api/books/{book.id}", headers=headers, json=updated_data)   
+    print("Status code:", response.status_code)
+    print("Response JSON:", response.json())
+
+    assert response.status_code == 200
+    updated_book = response.json()
+    assert updated_book['id'] == book.id
+    assert updated_book['title'] == updated_data['title']
+    assert updated_book['author'] == updated_data['author']
+    assert updated_book['in_stock'] == updated_data['in_stock']
+    assert updated_book['rating'] == updated_data['rating']
+    assert updated_book['publication_year'] == updated_data['publication_year']
+
+
     
-''''
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session

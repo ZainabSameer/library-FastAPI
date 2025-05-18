@@ -18,7 +18,7 @@ def get_books(db: Session = Depends(get_db)):
 def get_single_book(book_id: int, db: Session = Depends(get_db)):
     book = db.query(BookModel).filter(BookModel.id == book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="not found")
+        raise HTTPException(status_code=404, detail="Book not found")
     return book
 
 @router.post("/books", response_model=BookSchema)
