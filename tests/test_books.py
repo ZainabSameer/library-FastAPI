@@ -139,6 +139,32 @@ def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
     assert updated_book['rating'] == updated_data['rating']
     assert updated_book['publication_year'] == updated_data['publication_year']
 
+def test_update_book_not_found(test_app: TestClient, test_db: Session, override_get_db):
+    user = UserModel(username='someguy', email='someperson@example.com')
+    user.set_password('bestpassword')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+
+    headers = login(test_app, 'someguy', 'bestpassword')
+    max_book_id = test_db.query(BookModel.id).order_by(BookModel.id.desc()).first()
+    if max_book_id is None:
+        invalid_book_id = 1
+    else:
+        invalid_book_id = max_book_id[0] + 1
+
+    updated_data = {
+        "title": "Another Updated Book Name",
+        "author": "Updated Author",
+        "in_stock": True,
+        "rating": 56,
+        "publication_year": 2025
+    }
+
+    response = test_app.put(f"/api/books/{invalid_book_id}", headers=headers, json=updated_data)
+    assert response.status_code == 404
+    response_data = response.json()
+    assert response_data["detail"] == "Book not found"
 
 '''''
 def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
