@@ -232,6 +232,59 @@ def test_delete_book(test_app: TestClient, test_db: Session, override_get_db):
     assert response.status_code == 404
     response_data = response.json()
     assert response_data["detail"].lower() == "book not found"
+
+
+def test_book_not_found_for_deletion(test_app: TestClient, test_db: Session, override_get_db):
+    user = UserModel(username='remover', email='deleter@example.com')
+    user.set_password('swingandamiss')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+
+    headers = login(test_app, 'remover', 'swingandamiss')
+
+    max_book_id = test_db.query(BookModel.id).order_by(BookModel.id.desc()).first()
+    if max_book_id is None:
+        invalid_book_id = 1
+    else:
+        invalid_book_id = max_book_id[0] + 1
+
+    response = test_app.delete(f"/api/books/{invalid_book_id}", headers=headers)
+    assert response.status_code == 404
+    response_data = response.json()
+    assert response_data["detail"] == "not found"
+
+
+def test_unauthorized_deletion(test_app: TestClient, test_db: Session, override_get_db):
+    user_a = UserModel(username='usera', email='usera@example.com')
+    user_a.set_password('passworda')
+    test_db.add(user_a)
+    test_db.commit()
+    test_db.refresh(user_a)
+
+    user_b = UserModel(username='userb', email='userb@example.com')
+    user_b.set_password('passwordb')
+    test_db.add(user_b)
+    test_db.commit()
+    test_db.refresh(user_b)
+
+    book = BookModel(
+        title="What is a Book?",
+        author="Author A",
+        in_stock=True,
+        rating=100,
+        user_id=user_a.id
+    )
+    test_db.add(book)
+    test_db.commit()
+    test_db.refresh(book)
+
+
+    headers = login(test_app, 'userb', 'passwordb')
+
+    response = test_app.delete(f"/api/books/{book.id}", headers=headers)
+    assert response.status_code == 403
+    response_data = response.json()
 '''''
 def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
     user = UserModel(username='anotherTestUser', email='hello@example.com')
