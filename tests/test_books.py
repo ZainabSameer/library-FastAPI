@@ -285,6 +285,39 @@ def test_unauthorized_deletion(test_app: TestClient, test_db: Session, override_
     response = test_app.delete(f"/api/books/{book.id}", headers=headers)
     assert response.status_code == 403
     response_data = response.json()
+
+
+def test_unauthorized_deletion(test_app: TestClient, test_db: Session, override_get_db):
+    user_a = UserModel(username='usera', email='usera@example.com')
+    user_a.set_password('passworda')
+    test_db.add(user_a)
+    test_db.commit()
+    test_db.refresh(user_a)
+
+    user_b = UserModel(username='userb', email='userb@example.com')
+    user_b.set_password('passwordb')
+    test_db.add(user_b)
+    test_db.commit()
+    test_db.refresh(user_b)
+
+    book = BookModel(
+        title="What is a Book?",
+        author="Author A",
+        in_stock=True,
+        rating=100,
+        user_id=user_a.id
+    )
+    test_db.add(book)
+    test_db.commit()
+    test_db.refresh(book)
+
+    headers = login(test_app, 'userb', 'passwordb')
+
+    response = test_app.delete(f"/api/books/{book.id}", headers=headers)
+    assert response.status_code == 403
+    response_data = response.json()
+    assert response_data["detail"] == "Operation forbidden"
+
 '''''
 def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
     user = UserModel(username='anotherTestUser', email='hello@example.com')
