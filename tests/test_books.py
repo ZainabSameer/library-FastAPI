@@ -166,6 +166,72 @@ def test_update_book_not_found(test_app: TestClient, test_db: Session, override_
     response_data = response.json()
     assert response_data["detail"] == "Book not found"
 
+def test_unauthorized_update_book(test_app: TestClient, test_db: Session, override_get_db):
+    user1 = UserModel(username='user1', email='user1@example.com')
+    user1.set_password('password1')
+    test_db.add(user1)
+    test_db.commit()
+    test_db.refresh(user1)
+
+    user2 = UserModel(username='user2', email='user2@example.com')
+    user2.set_password('password2')
+    test_db.add(user2)
+    test_db.commit()
+    test_db.refresh(user2)
+
+    book = BookModel(
+        title="Private Book",
+        author="Owner Author",
+        in_stock=True,
+        rating=90,
+        publication_year=2020,
+        user_id=user1.id
+    )
+    test_db.add(book)
+    test_db.commit()
+    test_db.refresh(book)
+
+    headers = login(test_app, 'user2', 'password2')
+
+    updated_data = {
+        "title": "Unauthorized Edit",
+        "author": "Intruder",
+        "in_stock": False,
+        "rating": 10,
+        "publication_year": 2024
+    }
+    response = test_app.put(f"/api/books/{book.id}", headers=headers, json=updated_data)
+    assert response.status_code == 403
+    response_data = response.json()
+    assert response_data["detail"] == "Operation forbidden"
+
+def test_delete_book(test_app: TestClient, test_db: Session, override_get_db):
+    user = UserModel(username='deleter', email='remover@example.com')
+    user.set_password('del')
+    test_db.add(user)
+    test_db.commit()
+    test_db.refresh(user)
+
+    headers = login(test_app, 'deleter', 'del')
+
+    book = BookModel(
+        title="Not Long For This World Book",
+        author="Ghost Writer",
+        in_stock=True,
+        rating=6,
+        user_id=user.id
+    )
+    test_db.add(book)
+    test_db.commit()
+    test_db.refresh(book)
+
+    response = test_app.delete(f"/api/books/{book.id}", headers=headers)
+    assert response.status_code == 200
+
+    response = test_app.get(f"/api/books/{book.id}", headers=headers)
+    assert response.status_code == 404
+    response_data = response.json()
+    assert response_data["detail"].lower() == "book not found"
 '''''
 def test_update_book(test_app: TestClient, test_db: Session, override_get_db):
     user = UserModel(username='anotherTestUser', email='hello@example.com')
